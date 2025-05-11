@@ -50,8 +50,26 @@ static bool editorKeyDown(ImGuiKey key) {
         return false;
     return ImGui::IsKeyDown(key);
 }
+void Editor::addBlock() {
+    int block = level.addBlock();
+    int piece = level.addPiece(block);
+    glm::vec3 camPos = Renderer::camPos;
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x - 0.5f + Renderer::camPos.x, getMousePos().y + 0.5f + Renderer::camPos.y)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x + 0.5f + Renderer::camPos.x, getMousePos().y + 0.5f + Renderer::camPos.y)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x + 0.5f + Renderer::camPos.x, getMousePos().y - 0.5f + Renderer::camPos.y)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x - 0.5f + Renderer::camPos.x, getMousePos().y - 0.5f + Renderer::camPos.y)));
+    level.blocks[block].update(&level);
+    deselectAll();
+    selectPiece(piece);
+}
 
 void Editor::update(float dt) {
+
+    ImGui::Begin("Debug");
+    ImGui::Text("X Pos: %d", player.posx);
+    ImGui::Text("Y Pos: %d", player.posy);
+    ImGui::End();
+
     ImGui::Begin("Level Settings");
     ImGui::Text("Polygons: %d / %d", level.activePieces, level.pieces.cnt());
     ImGui::Text("Groups: %d / %d", level.activeBlocks, level.blocks.cnt());
@@ -62,18 +80,13 @@ void Editor::update(float dt) {
     ImGui::Begin("Tools");
     ImGui::BeginDisabled(polyEditMode);
     if(ImGui::Button("Add Polygon")) {
-        int block = level.addBlock();
-        int piece = level.addPiece(block);
-        glm::vec3 camPos = Renderer::camPos;
-        level.pieces[piece].vertices.add(makePointVertex(glm::vec2(camPos.x - 0.5f, camPos.y - 2.0f)));
-        level.pieces[piece].vertices.add(makePointVertex(glm::vec2(camPos.x + 0.5f, camPos.y - 2.0f)));
-        level.pieces[piece].vertices.add(makePointVertex(glm::vec2(camPos.x + 0.5f, camPos.y - 3.0f)));
-        level.pieces[piece].vertices.add(makePointVertex(glm::vec2(camPos.x - 0.5f, camPos.y - 3.0f)));
-        level.blocks[block].update(&level);
-        deselectAll();
-        selectPiece(piece);
+        Editor::addBlock();
     }
     ImGui::EndDisabled();
+
+    if(keyPressed('M')) {
+        Editor::addBlock();
+    }
 
     if(!polyEditMode && selectedPieces.cnt() > 0 && (editorKeyPressed(ImGuiKey_Delete) || editorKeyPressed(ImGuiKey_Backspace))) {
         for(int i = 0; i < selectedPieces.cnt(); i++) {
@@ -94,12 +107,12 @@ void Editor::update(float dt) {
             if(material != level.pieces[selectedPieces[0]].material) {
                 materialsMixed = true;
             }
-        } 
+        }
         ImGui::Text("Material: ");
         ImGui::SameLine();
         if(ImGui::Button(materialsMixed ? "Mixed" : materials[material].name)) {
             ImGui::OpenPopup("material_selection_popup");
-        } 
+        }
         if(ImGui::BeginPopup("material_selection_popup")) {
             int chosenMaterial = -1;
             for(int i = 0; i < materials.cnt(); i++) {
@@ -150,13 +163,13 @@ void Editor::update(float dt) {
     }
 
     if(freecam) {
-        b2Vec2 camMovement(0.0f, 0.0f); 
+        b2Vec2 camMovement(0.0f, 0.0f);
         if(editorKeyDown(ImGuiKey_D))
-            camMovement.x += 1.0f; 
+            camMovement.x += 1.0f;
         if(editorKeyDown(ImGuiKey_A))
             camMovement.x -= 1.0f;
         if(editorKeyDown(ImGuiKey_W))
-            camMovement.y += 1.0f; 
+            camMovement.y += 1.0f;
         if(editorKeyDown(ImGuiKey_S))
             camMovement.y -= 1.0f;
         camMovement *= 5.0f * dt;
@@ -203,7 +216,7 @@ void Editor::selectPiece(int pieceIdx) {
 void Editor::polyEditModeUI() {
     LevelPiece* piece = &level.pieces[selectedPieces[0]];
     float frontZ = -piece->frontLayer;
-    
+
     const float vertCircleRadius = 0.04f;
 
     for(int i = 0; i < piece->vertices.cnt(); i++) {
@@ -237,7 +250,7 @@ void Editor::polyEditModeUI() {
             for(int i = 0; i < selectedVerts.cnt(); i++) {
                 glm::vec3 vertPos = glm::vec3(piece->vertices[selectedVerts[i]].point, frontZ);
                 if(glm::distance(vertPos, mousePos) < vertCircleRadius) {
-                    clikedSelectedVert = true;    
+                    clikedSelectedVert = true;
                 }
             }
             if(!clikedSelectedVert)
@@ -261,8 +274,8 @@ void Editor::polyEditModeUI() {
 
     // Edge split
     for(int i = 0; i < piece->vertices.cnt(); i++) {
-        int i1 = (i + 1) % piece->vertices.cnt(); 
-        
+        int i1 = (i + 1) % piece->vertices.cnt();
+
         glm::vec3 p0 = glm::vec3(piece->vertices[i].point, frontZ);
         glm::vec3 p1 = glm::vec3(piece->vertices[i1].point, frontZ);
         glm::vec3 pt = glm::closestPointOnLine(mousePos, p0, p1);

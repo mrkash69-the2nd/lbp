@@ -35,6 +35,9 @@ public:
     void update(float dt);
     void applyForce(glm::vec2 force);
 
+    float posx;
+    float posy;
+
     b2Body* body;
     int layer;
 
@@ -51,7 +54,7 @@ private:
     b2Fixture* grabSensor;
 
     float prevAngle;
-    
+
     ActionBuffer jumpBuffer;
     bool rising;
 

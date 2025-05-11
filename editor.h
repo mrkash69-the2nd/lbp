@@ -3,6 +3,7 @@
 #define EDITOR_H
 
 #include "level.h"
+#include "player.h"
 
 class Editor {
 
@@ -12,6 +13,7 @@ public:
     void update(float dt);
 
     Level level;
+    Player player;
 
 private:
 
@@ -23,11 +25,12 @@ private:
 
     bool polyEditMode;
     void polyEditModeUI();
-    Arr<int, true> selectedVerts; 
+    Arr<int, true> selectedVerts;
     void selectVert(int vert);
     bool vertSelected(int vert);
     void deleteVert(LevelPiece* piece, int vert);
     glm::vec3 prevMousePos;
+    void addBlock();
 
 };
 

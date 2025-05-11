@@ -2,6 +2,7 @@
 #include "player.h"
 #include "main.h"
 #include "input.h"
+#include "imgui.h"
 
 #define CAPSULE_RADIUS 0.3f
 #define CAPSULE_HEIGHT 0.3f
@@ -40,10 +41,10 @@ void CapsuleFixtures::setLayer(int layer) {
     uint32_t colMask = layer >= 0 ? 1 << layer : 0;
     b2Filter filter;
     filter.categoryBits = colMask;
-    filter.maskBits = colMask; 
-    head->SetFilterData(filter); 
-    torso->SetFilterData(filter); 
-    legs->SetFilterData(filter); 
+    filter.maskBits = colMask;
+    head->SetFilterData(filter);
+    torso->SetFilterData(filter);
+    legs->SetFilterData(filter);
 }
 
 bool CapsuleFixtures::containsFixture(b2Fixture* fixture) {
@@ -51,6 +52,9 @@ bool CapsuleFixtures::containsFixture(b2Fixture* fixture) {
 }
 
 void Player::init(float x, float y, int layer) {
+
+    posy = 0;
+    posx = 0;
 
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
@@ -94,7 +98,7 @@ void Player::render() {
 
     Renderer::meshShader.use();
 
-    glm::mat4 transform = glm::mat4(1.0f); 
+    glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, glm::vec3(body->GetPosition().x, body->GetPosition().y, -layer - 0.5f));
     transform = glm::rotate(transform, body->GetAngle(), glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::translate(transform, glm::vec3(0.0f, CAPSULE_HEIGHT / 2, 0.0f));
@@ -127,7 +131,7 @@ b2Vec2 getClosestPointOnFixture(b2Vec2 orig, b2Fixture* fixture) {
 }
 
 GrabPoint Player::getGrabPoint() {
-    GrabPoint res; 
+    GrabPoint res;
     res.exists = false;
     res.dist = 9999999999.0f;
     b2Vec2 headPoint = body->GetWorldPoint(b2Vec2(0.0f, CAPSULE_HEIGHT));
@@ -168,11 +172,15 @@ void Player::update(float dt) {
 
     body->SetType(enable ? b2_dynamicBody : b2_staticBody);
 
+    posx = body->GetPosition().x;
+    posy = body->GetPosition().y;
+
     // Check for groundedness and front/back sensors
     bool grounded = false;
     bool objInFront = false;
     bool objBehind = false;
     bool crushed = false;
+
     for(b2ContactEdge* ce = body->GetContactList(); ce; ce = ce->next) {
         b2Contact* c = ce->contact;
         if(c->IsTouching()) {
@@ -220,7 +228,7 @@ void Player::update(float dt) {
         horizInput -= 1.0f;
     if(keyDown('D'))
         horizInput += 1.0f;
-    
+
     float targetXSpeed = horizInput * PLAYER_SPEED;
     float currXSpeed = body->GetLinearVelocity().x;
 
@@ -236,7 +244,7 @@ void Player::update(float dt) {
 
     jumpBuffer.update(dt);
     jumpBuffer.setActionAvailable(grounded);
-    if(keyPressed(' ')) 
+    if(keyPressed(' '))
         jumpBuffer.doAction();
     if(jumpBuffer.isActionTime()) {
         applyForce(glm::vec2(0.0f, PLAYER_JUMP_FORCE));
@@ -247,7 +255,7 @@ void Player::update(float dt) {
     float gravity;
     if(body->GetLinearVelocity().y > 0) {
         if(rising) {
-            gravity = PLAYER_RISE_GRAVITY; 
+            gravity = PLAYER_RISE_GRAVITY;
             if(!keyDown(' '))
                 rising = false;
         } else {
@@ -269,10 +277,10 @@ void Player::update(float dt) {
             layer--;
 
 
-        solid.setLayer(layer); 
+        solid.setLayer(layer);
         crushSensor.setLayer(layer);
-        frontSensor.setLayer(layer - 1); 
-        backSensor.setLayer(layer + 1); 
+        frontSensor.setLayer(layer - 1);
+        backSensor.setLayer(layer + 1);
 
         uint32_t grabSensorFilterMask = 1 << layer;
         b2Filter grabSensorFilter;
