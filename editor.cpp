@@ -11,6 +11,7 @@
 const glm::vec3 uiGreen = glm::vec3(0.3f, 1.0f, 0.4f);
 
 void Editor::init() {
+
     level.init();
 
     freecam = true;
@@ -50,14 +51,14 @@ static bool editorKeyDown(ImGuiKey key) {
         return false;
     return ImGui::IsKeyDown(key);
 }
-void Editor::addBlock() {
+
+void Editor::addBlock(glm::vec2 pos) {
     int block = level.addBlock();
     int piece = level.addPiece(block);
-    glm::vec3 camPos = Renderer::camPos;
-    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x - 0.5f + Renderer::camPos.x, getMousePos().y + 0.5f + Renderer::camPos.y)));
-    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x + 0.5f + Renderer::camPos.x, getMousePos().y + 0.5f + Renderer::camPos.y)));
-    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x + 0.5f + Renderer::camPos.x, getMousePos().y - 0.5f + Renderer::camPos.y)));
-    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(getMousePos().x - 0.5f + Renderer::camPos.x, getMousePos().y - 0.5f + Renderer::camPos.y)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(pos.x - 0.5f, pos.y + 0.5f)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(pos.x + 0.5f, pos.y + 0.5f)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(pos.x + 0.5f, pos.y - 0.5f)));
+    level.pieces[piece].vertices.add(makePointVertex(glm::vec2(pos.x - 0.5f, pos.y - 0.5f)));
     level.blocks[block].update(&level);
     deselectAll();
     selectPiece(piece);
@@ -66,8 +67,8 @@ void Editor::addBlock() {
 void Editor::update(float dt) {
 
     ImGui::Begin("Debug");
-    ImGui::Text("X Pos: %d", player.posx);
-    ImGui::Text("Y Pos: %d", player.posy);
+    ImGui::Text("X Pos: %f", Renderer::camPos.x);
+    ImGui::Text("Y Pos: %f", Renderer::camPos.y - 1);
     ImGui::End();
 
     ImGui::Begin("Level Settings");
@@ -80,12 +81,13 @@ void Editor::update(float dt) {
     ImGui::Begin("Tools");
     ImGui::BeginDisabled(polyEditMode);
     if(ImGui::Button("Add Polygon")) {
-        Editor::addBlock();
+        glm::vec3 camPos = Renderer::camPos;
+        Editor::addBlock(glm::vec2(camPos.x, camPos.y - 2.0f));
     }
     ImGui::EndDisabled();
 
     if(keyPressed('M')) {
-        Editor::addBlock();
+        Editor::addBlock(Renderer::screenToWorld(getMousePos(), 0.0f));
     }
 
     if(!polyEditMode && selectedPieces.cnt() > 0 && (editorKeyPressed(ImGuiKey_Delete) || editorKeyPressed(ImGuiKey_Backspace))) {
@@ -202,7 +204,6 @@ void Editor::update(float dt) {
     } else {
         polyEditModeUI();
     }
-
 }
 
 void Editor::deselectAll() {

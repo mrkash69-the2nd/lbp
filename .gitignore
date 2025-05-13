@@ -3,3 +3,6 @@ build/
 .vscode/
 **/*.blend1
 **/*.ini
+build_pub/
+lbp
+sync_build_pub.sh

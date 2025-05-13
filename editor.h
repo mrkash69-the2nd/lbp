@@ -30,7 +30,7 @@ private:
     bool vertSelected(int vert);
     void deleteVert(LevelPiece* piece, int vert);
     glm::vec3 prevMousePos;
-    void addBlock();
+    void addBlock(glm::vec2 pos);
 
 };
 

@@ -53,9 +53,6 @@ bool CapsuleFixtures::containsFixture(b2Fixture* fixture) {
 
 void Player::init(float x, float y, int layer) {
 
-    posy = 0;
-    posx = 0;
-
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.bullet = true;
@@ -171,9 +168,6 @@ GrabPoint Player::getGrabPoint() {
 void Player::update(float dt) {
 
     body->SetType(enable ? b2_dynamicBody : b2_staticBody);
-
-    posx = body->GetPosition().x;
-    posy = body->GetPosition().y;
 
     // Check for groundedness and front/back sensors
     bool grounded = false;

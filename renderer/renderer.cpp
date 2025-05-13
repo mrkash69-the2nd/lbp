@@ -30,8 +30,8 @@ out float pTexId;
 
 void main() {
     gl_Position = uProjView * uModel * vec4(aPos, 1.0f);
-    pPos = (uModel * vec4(aPos, 1.0f)).xyz; 
-    pUv = aUv; 
+    pPos = (uModel * vec4(aPos, 1.0f)).xyz;
+    pUv = aUv;
     mat3 normalTransform = mat3(transpose(inverse(uModel)));
     pNorm = normalTransform * aNorm;
     pTang = normalTransform * aTang;
@@ -106,7 +106,7 @@ void main() {
     vec3 norm = normalize(mix(meshNorm, mapNorm, uNormStrength));
 
     vec3 view = normalize(uCamPos - pPos);
-    
+
     vec3 matCol = sampleCol(uv, texId).xyz;
     matCol.x = pow(matCol.x, 2.2f);
     matCol.y = pow(matCol.y, 2.2f);
@@ -116,12 +116,12 @@ void main() {
     vec3 erm = arm;
     erm.x = uEmission;
 
-    oColor = vec4(matCol, 1.0f); 
+    oColor = vec4(matCol, 1.0f);
     oNorm = norm;
     oPos = pPos;
     oErm = erm;
 
-} 
+}
 
 )";
 
@@ -148,14 +148,14 @@ uniform sampler2D uPos;
 uniform sampler2D uErm;
 
 struct PointLight {
-    vec3 pos;    
+    vec3 pos;
     vec3 col;
 };
 
 uniform PointLight uPointLights[4];
 
 uniform vec3 uAmbient;
-uniform vec3 uDirectionalDir; 
+uniform vec3 uDirectionalDir;
 uniform vec3 uDirectionalCol;
 
 uniform vec3 uCamPos;
@@ -214,13 +214,13 @@ vec3 calcLighting(vec3 l, vec3 n, vec3 v, vec3 matCol, vec3 incomingLight, float
     float alpha = sq(roughness);
 
     vec3 f = fresnel(v, h, f0);
-    vec3 kd = 1 - f; 
+    vec3 kd = 1 - f;
 
     vec3 lambert = matCol / PI;
 
     vec3 specular = specular(alpha, n, h, l, v, f);
 
-    vec3 brdf = kd * lambert + specular; 
+    vec3 brdf = kd * lambert + specular;
     vec3 light = brdf * incomingLight * dot0(l, n);
 
     return light;
@@ -245,10 +245,10 @@ vec3 calcSkylight(vec3 skyCol, vec3 n, vec3 v, vec3 f0, float roughness, vec3 ma
 
 void main() {
 
-    vec4 col = texture(uCol, pUv); 
+    vec4 col = texture(uCol, pUv);
     vec3 matCol = col.xyz;
     float alpha = col.w;
-    vec3 norm = texture(uNorm, pUv).xyz; 
+    vec3 norm = texture(uNorm, pUv).xyz;
     vec3 pos = texture(uPos, pUv).xyz;
     vec3 erm = texture(uErm, pUv).xyz;
     vec3 f0 = mix(vec3(0.04f), matCol, erm.z);
@@ -256,8 +256,8 @@ void main() {
     vec3 view = normalize(uCamPos - pos);
 
     vec3 skyCol = uAmbient;
-    
-    vec3 light = erm.x * matCol; 
+
+    vec3 light = erm.x * matCol;
     light += calcSkylight(skyCol, norm, view, f0, erm.y, matCol);
     light += calcLighting(-uDirectionalDir, norm, view, matCol, uDirectionalCol, erm.y, f0);
     for(int i = 0; i < 1; i++) {
@@ -271,7 +271,7 @@ void main() {
 
     // High-tech HDR mapping
     light = light / (light + vec3(1.0f));
-    oColor = vec4(lerp(skyCol, light, alpha), 1.0f); 
+    oColor = vec4(lerp(skyCol, light, alpha), 1.0f);
 }
 
 )";
@@ -289,7 +289,7 @@ uniform mat4 uModel;
 out vec2 pUv;
 
 void main() {
-    gl_Position = uProjView * uModel * vec4(aPos, 1.0f); 
+    gl_Position = uProjView * uModel * vec4(aPos, 1.0f);
     pUv = aUv;
 }
 
@@ -367,7 +367,7 @@ void Renderer::init() {
     meshShader.use();
     meshShader.setIntUniform("uCol[0]", 0);
     meshShader.setIntUniform("uNorm[0]", 1);
-    meshShader.setIntUniform("uArm[0]", 2); 
+    meshShader.setIntUniform("uArm[0]", 2);
     meshShader.setIntUniform("uCol[1]", 3);
     meshShader.setIntUniform("uNorm[1]", 4);
     meshShader.setIntUniform("uArm[1]", 5);
@@ -394,7 +394,7 @@ void Renderer::init() {
         (MeshVert){glm::vec3(-0.5f,  0.5f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f)}
     };
 
-    unsigned int indices[] = { 
+    unsigned int indices[] = {
         0, 1, 3,
         1, 2, 3
     };
@@ -511,7 +511,7 @@ void Renderer::renderMesh(Mesh& mesh, Texture& col, Texture& norm, Texture& arm,
     meshShader.setFloatUniform("uEmission", emission);
     mesh.render();
 }
-    
+
 void Renderer::setAmbient(glm::vec3 ambient) {
     screenShader.use();
     screenShader.setVec3Uniform("uAmbient", ambient);
@@ -543,7 +543,7 @@ void Renderer::drawUILine(glm::vec3 a, glm::vec3 b, float thickness, glm::vec3 c
     model = glm::scale(model, glm::vec3(len, thickness, 1.0f));
     uiLineShader.use();
     uiLineShader.setMat4Uniform("uModel", model);
-    uiCircleShader.setVec3Uniform("uColor", color); 
+    uiCircleShader.setVec3Uniform("uColor", color);
     quad.render();
 }
 
@@ -551,11 +551,11 @@ void Renderer::drawUICircle(glm::vec3 pt, float radius, glm::vec3 color, glm::ve
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, pt);
     model = glm::scale(model, glm::vec3(radius * 2.0f));
-    uiCircleShader.use(); 
-    uiCircleShader.setMat4Uniform("uModel", model); 
-    uiCircleShader.setVec3Uniform("uColor", color); 
-    uiCircleShader.setVec3Uniform("uInnerColor", innerColor); 
-    uiCircleShader.setFloatUniform("uInnerRadiusRatio", innerRadiusRatio); 
+    uiCircleShader.use();
+    uiCircleShader.setMat4Uniform("uModel", model);
+    uiCircleShader.setVec3Uniform("uColor", color);
+    uiCircleShader.setVec3Uniform("uInnerColor", innerColor);
+    uiCircleShader.setFloatUniform("uInnerRadiusRatio", innerRadiusRatio);
     quad.render();
 }
 
